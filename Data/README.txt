@@ -1,0 +1,1 @@
+This folder contains the verbal descriptions given for 120 action video clips.
