@@ -1,0 +1,1 @@
+This folder contains one key frame image for each action video.
