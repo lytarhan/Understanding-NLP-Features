@@ -14,7 +14,7 @@ This script contains code to interactively explore:
 # %% libraries and helpers
 
 # custom helper functions
-# [] add these in
+from utils import *
 
 import pandas as pd
 from pathlib import Path
@@ -29,11 +29,8 @@ descriptions = pd.read_csv(descriptionsPath)
 
 # %% Explore the descriptions of a set of action videos
 
-# [] write a helper function: 
-    # prints out a list of the vid names
-    # asks you to enter a vid name (or quit)
-    # prints out all the descriptions of that vid
-    # asks you to do it again (or quit)
+# run this cell to call a helper function -- it will print out the descriptions collected for any video. 
+printDescriptions(descriptions)
     
 # %% how reliable are the BERT embeddings across subjects?
 
