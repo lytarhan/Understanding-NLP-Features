@@ -72,6 +72,7 @@ def printDescriptions(df):
 
 
 def printInterSubReliability(featureDF):
+    print('\nCalculating how similar feature embeddings were across subs...')
     # calculate inter-sub reliability for each video set
     stimSets = featureDF['stimSet'].unique();
     
@@ -118,12 +119,32 @@ def printInterSubReliability(featureDF):
                     yticklabels = False, 
                     cbar_kws={'label': 'avg. euclidean distance', 'orientation': 'vertical'})
         axes[sp].set_title('Video set: ' + s)
+        
+    print('check your plots to see how similar feature embeddings were across subjects.\n')
                 
 
 # %% Exclude outlier subjects
 
 def excludeOutliers(df, subsToExclude):
-    print('hello!')
+    print('\nExcluding outlier subjects...')
+    if len(subsToExclude) > 0:
+        # assign sub name as index for this data frame
+        df = df.set_index('subName')
+        
+        # drop all data for the excluded subs
+        cleanedDF = df.drop(subsToExclude)
+        
+        # double-check that this worked
+        x = [sub in cleanedDF.index.unique() for sub in subsToExclude]
+        assert not any(x), "double-check that all excluded subs were dropped."
+        
+        print(str(len(subsToExclude)) + ' outlier subs were dropped.\n')
+        
+        return cleanedDF
+    else:
+        print('0 subs were dropped.\n')
+
+    
         
         
   
