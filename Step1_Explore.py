@@ -25,7 +25,11 @@ from pathlib import Path
 descriptionsPath = Path("Data") / "ActionDescriptions.csv"
 descriptions = pd.read_csv(descriptionsPath)
 
-# [] full BERT feature embeddings
+# full BERT feature embeddings
+embeddingsPath = Path('Data') / 'DescriptionEmbeddings.csv'
+embeddings = pd.read_csv(embeddingsPath)
+
+print('Loaded data: verbal descriptions and their feature embeddings.')
 
 # %% Explore the descriptions of a set of action videos
 
@@ -34,6 +38,16 @@ printDescriptions(descriptions)
     
 # %% how reliable are the BERT embeddings across subjects?
 
+# run this cell to plot how similar the embeddings are across subjects. 
+# similarity is computed as the euclidean distance between any 2 subjects' embeddings, averaged across videos. 
+printInterSubReliability(embeddings)
+
+# there are a couple of apparent outliers in this data (columns that stand out in the heatmap).
+# exclude them before moving on.
+excludeFlag = 1;
+subsToExclude = ['Sub11', 'Sub7', 'Sub27'];
+if excludeFlag:
+    embeddings = excludeOutliers(embeddings, subsToExclude)
 
 # %% how video-specific are the BERT embeddings?
 # compare split-half reliability within the same video vs. across exemplars of the same action

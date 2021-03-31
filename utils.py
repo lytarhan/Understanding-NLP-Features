@@ -8,6 +8,14 @@ utility functions for exploring and explaining NLP features
 
 """
 
+# %% libraries
+
+from sklearn.metrics.pairwise import euclidean_distances
+import numpy as np
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
 # %% print out descriptions for any video
 
 # 1. prints out a list of the vid names
@@ -52,4 +60,70 @@ def printDescriptions(df):
             print('sorry, no data for ' + vid + '.')
             vid = input('Enter another video name, or press q to quit: ')
     
-     
+# %% print distance matrices to assess inter-subject reliability of the feature embeddings
+
+# - for each video, compare the feature embeddings extracted from individual 
+# subjects' descriptions of that video. 
+# - do this by computing the euclidean distance between embedding 
+# vectors -- captures differences in overall magnitude of features as well as 
+# relative patterns across features
+# - result = a square (subs x subs) distance matrix, measuring how similar the embeddings are across subjects.   
+# - done separately for each video set
+
+
+def printInterSubReliability(featureDF):
+    # calculate inter-sub reliability for each video set
+    stimSets = featureDF['stimSet'].unique();
+    
+    fig, axes = plt.subplots(1, len(stimSets), figsize=(15, 6))
+    fig.suptitle('comparing embeddings across subjects')
+    
+    for s in stimSets:
+        currSetDF = featureDF[featureDF['stimSet'] == s];
+        
+        # set up a distance matrix to keep track of sub reliability across videos
+        nSubs = len(currSetDF['subName'].unique())
+        dists = np.zeros((nSubs, nSubs))
+        
+        # loop through the vids in this stim set
+        currSetVids = currSetDF['vidName'].unique();
+        
+        for v in currSetVids:
+            # get feature embeddings for this vid's description, from all subs
+            currVidFeatures = currSetDF[currSetDF['vidName'] == v];
+            currVidFeatures = currVidFeatures.set_index('subName'); # keep track of the subs
+            currVidFeatures = currVidFeatures.sort_index(); # sort by sub to maintain the same order every time
+            currVidFeatures = currVidFeatures.drop(columns = ['vidName', 'stimSet']) # get just the embeddings
+            
+            x = euclidean_distances(currVidFeatures, currVidFeatures);
+            # result = square matrix of e.d.'s (dims = subs x subs) (numpy array)
+            
+            # get absolute value of these distances (so they don't just cancel out when we average) and add to the distance matrix:
+            dists = dists + np.absolute(x);
+            
+            
+        # complete the averaging process: divide distances by # vids
+        nVids = len(currSetVids)
+        dists = dists / nVids
+        
+        # figure out which subplot we're in
+        sp = np.where(stimSets == s)[0][0]
+        
+        # print out a heatmap of the distance matrix
+        mask = np.zeros_like(dists)
+        mask[np.triu_indices_from(mask)] = True          
+        sns.heatmap(dists, mask = mask, vmin = 0, square = True, 
+                    ax = axes[sp], 
+                    xticklabels = currSetDF['subName'].unique(), 
+                    yticklabels = False, 
+                    cbar_kws={'label': 'avg. euclidean distance', 'orientation': 'vertical'})
+        axes[sp].set_title('Video set: ' + s)
+                
+
+# %% Exclude outlier subjects
+
+def excludeOutliers(df, subsToExclude):
+    print('hello!')
+        
+        
+  
