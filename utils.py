@@ -219,8 +219,20 @@ def withinBetweenReliability(df):
     # return the reliability dataframe
     return relDF;
 
-    # [] make a plot: overlapping histograms
-    fig, axes = plt.subplots(1, len(stimSets), figsize=(15, 6))
+    # make a plot: overlapping histograms
+    relDF = relDF.reset_index()  
+    bigDF = pd.melt(relDF, id_vars = ['vidName'], value_vars = ['withinExemplarReliability', 'acrossExemplarReliability'])
+    bigDF = bigDF.rename(columns = {'vidName': 'vidName', 'variable': 'reliability type', 'value': 'rho'})
+    
+    sns.set_style('whitegrid')
+    ax = sns.displot(data=bigDF, x='rho', hue = 'reliability type', binwidth = .01)
+    ax.set(xlabel = "Split-Half Reliability (spearman's rho)", ylabel = "# of videos", legend = False)
+    
+    # this could be more beautiful, but I'm not going to let the perfect be the enemy of the good!
+
+    
+
+ 
     
             
             

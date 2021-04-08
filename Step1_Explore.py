@@ -63,7 +63,7 @@ if excludeFlag:
 
 # approach: compare split-half reliability within the same video vs. across exemplars of the same action
 
-# [] run a helper: output a plot with 2 histograms
+reliabilityResults = withinBetweenReliability(embeddings);
 
 
 # %% which videos have the most / least similar BERT embeddings?
