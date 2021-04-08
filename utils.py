@@ -145,6 +145,85 @@ def excludeOutliers(df, subsToExclude):
         print('0 subs were dropped.\n')
 
     
+# %% Compare split-half reliability within vs. between video exemplars
+
+def withinBetweenReliability(df):   
+    print('\nComparing NLP embeddings within and across exemplars...')
+    
+    nIters = 10; # how many split-halves to run in the reliability calculation?
+    
+    # set up a dataframe to store the 2 kinds of reliability
+    uniqueVids = df.vidName.unique()   
+    relDF = pd.DataFrame(columns = ['vidName', 'withinExemplarReliability', 'acrossExemplarReliability'])
+    relDF['vidName'] = uniqueVids;
+    relDF = relDF.set_index('vidName')
+    
+    # loop through the videos
+    for v in uniqueVids:
+        vIdx = np.where(uniqueVids == v)[0][0]
+        print('video ' + str(vIdx+1) + ' / ' + str(len(uniqueVids)))
         
+        # get the embeddings from all subs for this video
+        currVidEmbeddings = df[df['vidName'] == v]
         
+        # iteratively calculate split-half reliability for the embeddings
+        withinRels = np.zeros((1, nIters)).flatten()
+        acrossRels = np.zeros((1, nIters)).flatten()
+        for i in range(nIters):
+            # within-exemplar reliability
+            # ---------------------------
+            
+            # split the data randomly in half
+            ws1 = currVidEmbeddings.sample(frac = 0.5)
+            ws2 = currVidEmbeddings.drop(ws1.index)
+            
+            # average embeddings over the subs in each half
+            ws1 = ws1.mean(axis = 0)
+            ws2 = ws2.mean(axis = 0)
+            
+            # correlate the averaged vectors across the halves
+            withinRels[i] = ws1.corr(ws2, method = 'spearman')
+            
+            # across-exemplar reliability
+            # ---------------------------
+            
+            # get all the embeddings from the other exemplar
+            currVidSet = v[-1]
+            actionName = v.split(currVidSet)[0]
+            if currVidSet == '1':
+                otherExemplarName = actionName + '2';
+            elif currVidSet == '2':
+                otherExemplarName = actionName + '1';
+            else:
+                raise Exception("unexpected video set in video name...")
+            
+            # get data from the other exemplar:
+            otherVidEmbeddings = df[df['vidName'] == otherExemplarName]
+            
+            # randomly sample from the data for both exemplars:
+            as1 = currVidEmbeddings.sample(frac = 0.5)
+            as2 = otherVidEmbeddings.sample(frac = 0.5)
+            
+            # average over the data for each sample:
+            as1 = as1.mean(axis = 0)
+            as2 = as2.mean(axis = 0)
+            
+            # correlate the averaged vectors across exemplar samples:
+            acrossRels[i] = as1.corr(as2, method = 'spearman')
+            
+            
+        # record the within- and across-exemplar reliability for this vid (averaging over iterations)
+        relDF.at[v, "withinExemplarReliability"] = np.mean(withinRels)
+        relDF.at[v, "acrossExemplarReliability"] = np.mean(acrossRels)
+        
+    # return the reliability dataframe
+    return relDF;
+
+    # [] make a plot: overlapping histograms
+    fig, axes = plt.subplots(1, len(stimSets), figsize=(15, 6))
+    
+            
+            
+            
+            
   

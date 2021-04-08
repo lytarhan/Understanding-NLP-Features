@@ -50,7 +50,20 @@ if excludeFlag:
     embeddings = excludeOutliers(embeddings, subsToExclude)
 
 # %% how video-specific are the BERT embeddings?
-# compare split-half reliability within the same video vs. across exemplars of the same action
+
+# the stimuli are split into 2 sets of videos. Each set contains 1 video for each of 60 everyday actions. 
+# So, across the video sets there are 2 exemplars of the same action. The exemplars vary in a lot of low-level visual properties
+# -- such as the actor's appearance, the direction they're moving, the background, etc. 
+# They might unintentionally vary in some higher-level features, too -- e.g., maybe a professional runner has different goals than an amateur.
+
+# are the NLP features more similar across descriptions of the same video exemplar than across descriptions of different exemplars of the same action?
+# answering this doesn't necessarily tell us whether these features are capturing something visual or high-level (see above).
+# but, it's worth knowing the answer in order to understand whether it's reasonable to collapse across exemplars.
+# It could also inform follow-up experiments to try to hone in more on whether the features are visual or higher-level. 
+
+# approach: compare split-half reliability within the same video vs. across exemplars of the same action
+
+# [] run a helper: output a plot with 2 histograms
 
 
 # %% which videos have the most / least similar BERT embeddings?
