@@ -68,3 +68,9 @@ reliabilityResults = withinBetweenReliability(embeddings);
 
 # %% which videos have the most / least similar BERT embeddings?
 
+# [x] average embeddings over subs
+# [x] get embedding similarity among all videos
+# [x] print out a sorted bar plot of pair similarity
+# [] show key frames for the n most and n least similar vids -- maybe the user specifies how many? key frames should be labeled I think
+
+embeddingSimilarities(embeddings)

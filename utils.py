@@ -230,7 +230,39 @@ def withinBetweenReliability(df):
     
     # this could be more beautiful, but I'm not going to let the perfect be the enemy of the good!
 
+# %% Check out the videos with the most and least similar embeddings
+
+def embeddingSimilarities(df):
+    # (1) average across subjects to get 1 embedding vector per video
+    dfAvg = df.groupby("vidName").mean(); 
     
+    # (2) calculate similarity (euclidean distance) between every pair of vids
+    x = euclidean_distances(dfAvg, dfAvg); # result: vids x vids distance matrix
+    
+    # (3) visualization 1: sorted scatterplot of euclidean distances (most to least different)
+    # get just the data above the main diagonal:
+    triIdx = np.triu_indices(x.shape[0], k=1, m=None);
+    tri = x[triIdx];
+    
+    # put it into a data frame for plotting:
+    pairsDF = pd.DataFrame(columns = ['vid1', 'vid2', 'euclidean distance']);
+    pairsDF['vid1'] = dfAvg.index[triIdx[0]];
+    pairsDF['vid2'] = dfAvg.index[triIdx[1]];
+    pairsDF['euclidean distance'] = tri;
+    
+    # sort by euclidean distance
+    pairsDF = pairsDF.sort_values('euclidean distance');
+    
+    # line plot (to see the range / profile of differences between vids):
+    fig, axes = plt.subplots(1, 1, figsize=(15, 6))    
+    pairsDF['pair number'] = range(1, len(pairsDF)+1, 1);
+    sns.lineplot(data = pairsDF, x = "pair number", y = "euclidean distance", markers = True)
+    
+    plt.xlabel('Video Pair #', fontsize=20)
+    plt.ylabel('Dissimilarity between \nFeature Embeddings \n(Euclidean Distance)', fontsize = 20)
+    plt.show()
+    
+    # [] call a function to print out the top / bottom n videos (using key frames I think)
 
  
     
