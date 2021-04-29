@@ -17,6 +17,10 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+import cv2
+
+from pathlib import Path
+
 # %% print out descriptions for any video
 
 # 1. prints out a list of the vid names
@@ -264,30 +268,107 @@ def embeddingSimilarities(df, n):
     plt.show()
     
     
-    # version 1: just print out the names of these videos:
-    # n most similar pairs
+    # # version 1: just print out the names of these videos:
+    # # n most similar pairs
+    # pairNum = range(0, len(pairsDF), 1)
+    # pairsDF['pair number'] = pairNum;
+    # pairsDF = pairsDF.set_index('pair number');
+    
+    # print(str(n) + ' MOST SIMILAR VIDEOS:')
+    # mostSimDF = pairsDF[0:n]
+    # for r in range(mostSimDF.shape[0]):
+    #     print(mostSimDF['vid1'][r] + ' & ' + mostSimDF['vid2'][r] + ' - distance = ' + str(round(mostSimDF['euclidean distance'][r], 2)))
+    
+    # print(str(n) + ' LEAST SIMILAR VIDEOS:')
+    # startRow = pairsDF.shape[0]-n;
+    # endRow = pairsDF.shape[0];
+    # leastSimDF = pairsDF[startRow:endRow]
+    # for r in range(startRow, endRow):
+    #     print(leastSimDF['vid1'][r] + ' & ' + leastSimDF['vid2'][r] + ' - distance = ' + str(round(leastSimDF['euclidean distance'][r], 2)))
+    
+    
+    # version 2: call a function to print out the top / bottom n videos' key frames
+    fig = plt.figure(figsize = (15, 8))
+    topBuffers = 1;
+    middleBuffers = 1;
+    nRows = 4 + topBuffers + middleBuffers; # stack pairs vertically > horizontally (better real estate for the labels)
+    nCols = n;
+    
+    # print out the most similar vids
     pairNum = range(0, len(pairsDF), 1)
     pairsDF['pair number'] = pairNum;
     pairsDF = pairsDF.set_index('pair number');
     
-    print(str(n) + ' MOST SIMILAR VIDEOS:')
-    mostSimDF = pairsDF[0:n]
-    for r in range(mostSimDF.shape[0]):
-        print(mostSimDF['vid1'][r] + ' & ' + mostSimDF['vid2'][r] + ' - distance = ' + str(round(mostSimDF['euclidean distance'][r], 2)))
+    # get the indices for most & least sim vid pairs in pairsDF
+    mostSimStart = 0;
+    mostSimEnd = n;
+    leastSimStart = pairsDF.shape[0]-n;
+    leastSimEnd = pairsDF.shape[0];
+    idx = list(range(mostSimStart, mostSimEnd, 1)) + list(range(leastSimStart, leastSimEnd, 1));
     
-    print(str(n) + ' LEAST SIMILAR VIDEOS:')
-    startRow = pairsDF.shape[0]-n;
-    endRow = pairsDF.shape[0];
-    leastSimDF = pairsDF[startRow:endRow]
-    for r in range(startRow, endRow):
-        print(leastSimDF['vid1'][r] + ' & ' + leastSimDF['vid2'][r] + ' - distance = ' + str(round(leastSimDF['euclidean distance'][r], 2)))
+    # add label for the top section
+    fig.add_subplot(nRows, nCols, 1)
+    plt.text(0.1, 0.4, "MOST SIMILAR PAIRS", fontsize=20); plt.axis('off');
+     
+    counter = 1 + topBuffers*n;
+    for r in idx:
+       
+        # make path for vid1 image
+        vidName1 = pairsDF['vid1'][r];
+        imName1 = vidName1.replace('-', '_');
+        actionName1 = vidName1.split('-')[1];
+        vidSet1 = df[df['vidName'] == vidName1]['stimSet'][0];
+        imPathString1 = 'VideoImages\\Stim' + vidSet1 + '\\' + imName1 + '.png' 
+        
+        # read it in
+        im1 = cv2.imread(imPathString1);
+        im1 = np.flip(im1, axis = -1); # get the colors right
+        
+        # show it
+        fig.add_subplot(nRows, nCols, counter);
+        plt.imshow(im1); plt.axis('off'); 
+        plt.title(actionName1)
+        
+        
+        # add in vid 2 image
+        vidName2 = pairsDF['vid2'][r];
+        imName2 = vidName2.replace('-', '_');
+        actionName2 = vidName2.split('-')[1];
+        vidSet2 = df[df['vidName'] == vidName2]['stimSet'][0];
+        imPathString2 = 'VideoImages\\Stim' + vidSet2 + '\\' + imName2 + '.png' 
+        
+        # read it in
+        im2 = cv2.imread(imPathString2);
+        im2 = np.flip(im2, axis = -1); # get the colors right
+        
+        # show it
+        fig.add_subplot(nRows, nCols, counter+n);
+        plt.imshow(im2); plt.axis('off'); 
+        plt.title(actionName2)
+
+        
+        # iterate the subplots
+        if counter == n*(1+topBuffers): # going to the next section
+            # iterate the counter to skip the buffer row
+            counter += n + 1 + middleBuffers*n;
+            
+            # add label for the bottom section
+            fig.add_subplot(nRows, nCols, counter-n)
+            plt.text(0.1, 0.4, "LEAST SIMILAR PAIRS", fontsize=20); plt.axis('off');
+                        
+        else:
+            counter += 1; 
+            
+
+    
+        
+
+        
     
     
-    # version 2: call a function to print out the top / bottom n videos' key frames
-    # [] print a single key frame to a figure
-    # [] divide the figure into subplots
-    # [] print key frames to each subplot
-    # [] add in labels: euclidean distance & action names for each pair
+    #################################################   
+    
+    # [] add in labels: euclidean distance  (or at least pair #)
     # [] add in section titles: most similar on top, least similar on bottom
  
     

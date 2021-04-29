@@ -68,9 +68,13 @@ reliabilityResults = withinBetweenReliability(embeddings);
 
 # %% which videos have the most / least similar BERT embeddings?
 
-# [x] average embeddings over subs
-# [x] get embedding similarity among all videos
-# [x] print out a sorted bar plot of pair similarity
-# [] show key frames for the n most and n least similar vids -- maybe the user specifies how many? key frames should be labeled I think
+# average embeddings over subjects for each video, then print out a couple of summary figures. 
+
+# summary figure 1: plot of similarity (euclidean distance) between pairs of 
+# videos, sorted from most to least similar. This gives an idea of how quickly 
+# similarity drops off (e.g., are the first 10 pairs of videos really similar, 
+# and everything else is really different?)
+
+# summary figure 2: prints out the key frames for the n most and least similar pairs of videos.
 
 embeddingSimilarities(embeddings, 5)
