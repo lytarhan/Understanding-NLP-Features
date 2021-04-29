@@ -11,6 +11,7 @@ utility functions for exploring and explaining NLP features
 # %% libraries
 
 from sklearn.metrics.pairwise import euclidean_distances
+import pandas as pd
 import numpy as np
 
 import seaborn as sns
@@ -232,7 +233,7 @@ def withinBetweenReliability(df):
 
 # %% Check out the videos with the most and least similar embeddings
 
-def embeddingSimilarities(df):
+def embeddingSimilarities(df, n):
     # (1) average across subjects to get 1 embedding vector per video
     dfAvg = df.groupby("vidName").mean(); 
     
@@ -262,8 +263,32 @@ def embeddingSimilarities(df):
     plt.ylabel('Dissimilarity between \nFeature Embeddings \n(Euclidean Distance)', fontsize = 20)
     plt.show()
     
-    # [] call a function to print out the top / bottom n videos (using key frames I think)
-
+    
+    # version 1: just print out the names of these videos:
+    # n most similar pairs
+    pairNum = range(0, len(pairsDF), 1)
+    pairsDF['pair number'] = pairNum;
+    pairsDF = pairsDF.set_index('pair number');
+    
+    print(str(n) + ' MOST SIMILAR VIDEOS:')
+    mostSimDF = pairsDF[0:n]
+    for r in range(mostSimDF.shape[0]):
+        print(mostSimDF['vid1'][r] + ' & ' + mostSimDF['vid2'][r] + ' - distance = ' + str(round(mostSimDF['euclidean distance'][r], 2)))
+    
+    print(str(n) + ' LEAST SIMILAR VIDEOS:')
+    startRow = pairsDF.shape[0]-n;
+    endRow = pairsDF.shape[0];
+    leastSimDF = pairsDF[startRow:endRow]
+    for r in range(startRow, endRow):
+        print(leastSimDF['vid1'][r] + ' & ' + leastSimDF['vid2'][r] + ' - distance = ' + str(round(leastSimDF['euclidean distance'][r], 2)))
+    
+    
+    # version 2: call a function to print out the top / bottom n videos' key frames
+    # [] print a single key frame to a figure
+    # [] divide the figure into subplots
+    # [] print key frames to each subplot
+    # [] add in labels: euclidean distance & action names for each pair
+    # [] add in section titles: most similar on top, least similar on bottom
  
     
             

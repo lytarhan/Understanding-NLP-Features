@@ -73,4 +73,4 @@ reliabilityResults = withinBetweenReliability(embeddings);
 # [x] print out a sorted bar plot of pair similarity
 # [] show key frames for the n most and n least similar vids -- maybe the user specifies how many? key frames should be labeled I think
 
-embeddingSimilarities(embeddings)
+embeddingSimilarities(embeddings, 5)
