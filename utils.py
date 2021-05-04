@@ -359,18 +359,27 @@ def embeddingSimilarities(df, n):
         else:
             counter += 1; 
             
+# %% Use human judgments about videos' similarity along well-defined dimensions to understand what the NLP features are capturing
 
+def explainNLPFeatures(dfOverSubs, judgmentSims):
     
-        
+    # format the data: get similarities among all pairs of videos based on their feature embeddings
+    x = euclidean_distances(dfOverSubs, dfOverSubs); # result: vids x vids distance matrix
+    triIdx = np.triu_indices(x.shape[0], k=1, m=None);
+    tri = x[triIdx];
+    embeddingsPairs = pd.DataFrame(columns = ['vid1', 'vid2', 'euclidean distance']);
+    embeddingsPairs['vid1'] = embeddingsOverSubs.index[triIdx[0]];
+    embeddingsPairs['vid2'] = embeddingsOverSubs.index[triIdx[1]];
+    embeddingsPairs['ed - NLP'] = tri;
+    
+    # [] add in the judgmentSims columns (left join on vid1/vid2?) or at least check that the vid pairs are the same
+    
+    # [] explain NLP-sim with guidedSim + movementSim + visualSim
+    
+    # [] output 1: R^2 overall (simple bar plot)
+    
+    # [] output 2: betas for each type of judgment (another bar plot)
 
-        
-    
-    
-    #################################################   
-    
-    # [] add in labels: euclidean distance  (or at least pair #)
-    # [] add in section titles: most similar on top, least similar on bottom
- 
     
             
             
