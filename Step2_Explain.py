@@ -30,6 +30,8 @@ import matplotlib.pyplot as plt
 
 from utils import *
 
+pd.set_option('display.max_columns', 10)  
+
 # %% load in the data
 
 # (1) full BERT feature embeddings for each video
@@ -40,19 +42,31 @@ embeddings = pd.read_csv(embeddingsPath)
 subsToExclude = ['Sub11', 'Sub7', 'Sub27'];
 embeddings = excludeOutliers(embeddings, subsToExclude)
 embeddingsOverSubs = embeddings.groupby('vidName').mean();
-# [] ONLY set 1! (no human data for set 2)
+
+# no human data for video set 2, so pull out the embeddings for just set 1
+embeddingsOverSubs['SetNum'] = [vidname[-1] for vidname in embeddingsOverSubs.index]
+set1Embeddings = embeddingsOverSubs[embeddingsOverSubs['SetNum'] == '1'];
 
 print('Loaded data: feature embeddings for descriptions of each action video.')
 
 
 # (2) human similarity judgments for these same videos, along 3 different dimensions
-# [] save as table --> csv
-# [] load it in
-# [] check on the order of the vid pairs
+judgmentsPath = Path('Data') / 'HumanSimilarityJudgments.csv'
+judgments = pd.read_csv(judgmentsPath)
+judgments['vid1'] = [vn.replace('_', '-') for vn in judgments['vid1']]
+judgments['vid2'] = [vn.replace('_', '-') for vn in judgments['vid2']]
 
+print('Loaded data: human similarity judgments for all action videos in set 1.')
+
+
+# transform embeddings into similarities (euclidean distance between each pair of videos' embedding vectors)
+embeddingRDM = getEmbeddingRDM(set1Embeddings, judgments)
+print('formatted feature embeddings into RDM.')
 
 
 # %% Regression from human judgments
+
+
 
 
 # %% Compare to ImageNet representations

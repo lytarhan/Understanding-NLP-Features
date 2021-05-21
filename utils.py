@@ -18,6 +18,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 import cv2
+import math
+from sklearn import linear_model
 
 from pathlib import Path
 
@@ -267,27 +269,8 @@ def embeddingSimilarities(df, n):
     plt.ylabel('Dissimilarity between \nFeature Embeddings \n(Euclidean Distance)', fontsize = 20)
     plt.show()
     
-    
-    # # version 1: just print out the names of these videos:
-    # # n most similar pairs
-    # pairNum = range(0, len(pairsDF), 1)
-    # pairsDF['pair number'] = pairNum;
-    # pairsDF = pairsDF.set_index('pair number');
-    
-    # print(str(n) + ' MOST SIMILAR VIDEOS:')
-    # mostSimDF = pairsDF[0:n]
-    # for r in range(mostSimDF.shape[0]):
-    #     print(mostSimDF['vid1'][r] + ' & ' + mostSimDF['vid2'][r] + ' - distance = ' + str(round(mostSimDF['euclidean distance'][r], 2)))
-    
-    # print(str(n) + ' LEAST SIMILAR VIDEOS:')
-    # startRow = pairsDF.shape[0]-n;
-    # endRow = pairsDF.shape[0];
-    # leastSimDF = pairsDF[startRow:endRow]
-    # for r in range(startRow, endRow):
-    #     print(leastSimDF['vid1'][r] + ' & ' + leastSimDF['vid2'][r] + ' - distance = ' + str(round(leastSimDF['euclidean distance'][r], 2)))
-    
-    
-    # version 2: call a function to print out the top / bottom n videos' key frames
+
+    # print out the top / bottom n videos' key frames
     fig = plt.figure(figsize = (15, 8))
     topBuffers = 1;
     middleBuffers = 1;
@@ -358,27 +341,64 @@ def embeddingSimilarities(df, n):
                         
         else:
             counter += 1; 
+
+# %% Calculate pairwise similarities in embeddings
+
+# and make sure they're in the same order as the human similarity judgments
+
+def numPairs(n):
+    nPairs = int(math.factorial(n) / (math.factorial(2) * math.factorial(n-2)))
+    return nPairs;
+
+def getEmbeddingRDM(embeddingDF, humanDF):
+    # set up a dataframe to hold the dissimilarities (lower triangle of the RDM)
+    rdmDF = pd.DataFrame(columns = ['vid1', 'vid2', 'embeddingSimilarity'])
+    
+    # add in the vid pair names
+    vids = list(embeddingDF.index)
+    triIdx = np.triu_indices(len(vids), k = 1, m = None);
+    rdmDF['vid1'] = [vids[i].lower() for i in triIdx[0]]
+    rdmDF['vid2'] = [vids[j].lower() for j in triIdx[1]]
+    
+    # check that the order matched between the embeddings and the human judgments
+    assert all(rdmDF['vid1'] == humanDF['vid1']), 'mismatch in vid order between embeddings and judgments'
+    assert all(rdmDF['vid2'] == humanDF['vid2']), 'mismatch in vid order between embeddings and judgments'
+    
+    # get all distances (full RDM):
+    d = euclidean_distances(embeddingDF, embeddingDF); # vids x vids
+        
+    # get just the lower triangle
+    tri = d[triIdx];
+    assert tri.shape == (numPairs(len(vids)),), 'check that you got just the upper triangle of the RDM, minus the main diagonal.'
+    
+    # store in the dataframe
+    rdmDF['embeddingSimilarity'] = tri;
+    
+    return rdmDF
+    
             
 # %% Use human judgments about videos' similarity along well-defined dimensions to understand what the NLP features are capturing
 
-def explainNLPFeatures(dfOverSubs, judgmentSims):
+def explainNLPFeatures(embeddingRDM, humanRDM):
     
-    # format the data: get similarities among all pairs of videos based on their feature embeddings
-    x = euclidean_distances(dfOverSubs, dfOverSubs); # result: vids x vids distance matrix
-    triIdx = np.triu_indices(x.shape[0], k=1, m=None);
-    tri = x[triIdx];
-    embeddingsPairs = pd.DataFrame(columns = ['vid1', 'vid2', 'euclidean distance']);
-    embeddingsPairs['vid1'] = embeddingsOverSubs.index[triIdx[0]];
-    embeddingsPairs['vid2'] = embeddingsOverSubs.index[triIdx[1]];
-    embeddingsPairs['ed - NLP'] = tri;
+    # double-check that RDM orders match
+    assert all(embeddingRDM['vid1'] == humanRDM['vid1']), 'mismatch in vid order between embeddings and judgments'
+    assert all(embeddingRDM['vid2'] == humanRDM['vid2']), 'mismatch in vid order between embeddings and judgments'
+       
+    # explain NLP-sim with guidedSim + movementSim + visualSim  
+    X = humanRDM[['VisualSimilarity', 'MovementSimilarity', 'GoalSimilarity']].to_numpy()
+    Y = embeddingRDM['embeddingSimilarity'].to_numpy()
+    regr = linear_model.LinearRegression().fit(X, Y)
     
-    # [] add in the judgmentSims columns (left join on vid1/vid2?) or at least check that the vid pairs are the same
+    # output 1: R^2 overall (simple bar plot)
+    r2 = regr.score(X, Y)
+    # [] plot it
     
-    # [] explain NLP-sim with guidedSim + movementSim + visualSim
     
-    # [] output 1: R^2 overall (simple bar plot)
+    # output 2: betas for each type of judgment (another bar plot)
+    coeffs = regr.coef_;
+    # [] plot it
     
-    # [] output 2: betas for each type of judgment (another bar plot)
 
     
             
